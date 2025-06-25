@@ -5,38 +5,25 @@ import 'package:iconsax/iconsax.dart';
 import '../../bloc/auth/authentication_bloc.dart';
 import '../../config/router/route_names.dart';
 
-class SignUpPage extends StatefulWidget {
-  const SignUpPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
 
   @override
-  State<SignUpPage> createState() => _SignUpPageState();
+  State<LoginPage> createState() => _LoginPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
+class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
 
   bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
-  String _selectedRole = 'student';
-
-  final List<String> _roles = [
-    'student',
-    'coach',
-    'parent',
-  ];
+  bool _rememberMe = false;
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -66,18 +53,14 @@ class _SignUpPageState extends State<SignUpPage> {
                 backgroundColor: colorScheme.error,
               ),
             );
-          } else if (state is RegistrationSuccess) {
+          } else if (state is LoginSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: Text('Welcome back, ${state.user.name}!'),
                 backgroundColor: Colors.green,
               ),
             );
-            context.go('/verify', extra: {
-              'email': _emailController.text.trim(),
-            }
-            ); // Add this route to your router
-          }
+          } else if (state is AuthenticationAuthenticated) {}
         },
         child: SingleChildScrollView(
           child: Padding(
@@ -87,8 +70,9 @@ class _SignUpPageState extends State<SignUpPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Welcome Back Header
                   Text(
-                    'Sign Up',
+                    'Welcome Back',
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onSurface,
@@ -96,29 +80,12 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Create your account to get started',
+                    'Sign in to your account to continue',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: colorScheme.onSurface.withOpacity(0.6),
                     ),
                   ),
-                  const SizedBox(height: 32),
-
-                  // Full Name Field
-                  _buildTextField(
-                    controller: _nameController,
-                    label: 'Full Name',
-                    icon: Iconsax.user4,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your full name';
-                      }
-                      if (value.length < 2) {
-                        return 'Name must be at least 2 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 48),
 
                   // Email Field
                   _buildTextField(
@@ -135,58 +102,6 @@ class _SignUpPageState extends State<SignUpPage> {
                         return 'Please enter a valid email address';
                       }
                       return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Phone Field
-                  _buildTextField(
-                    controller: _phoneController,
-                    label: 'Phone Number',
-                    icon: Iconsax.call4,
-                    keyboardType: TextInputType.phone,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your phone number';
-                      }
-                      if (value.length < 10) {
-                        return 'Please enter a valid phone number';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Role Dropdown
-                  DropdownButtonFormField<String>(
-                    value: _selectedRole,
-                    decoration: InputDecoration(
-                      labelText: 'Role',
-                      prefixIcon: Icon(Iconsax.user_tag4,
-                          color: colorScheme.onSurface.withOpacity(0.6)),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: colorScheme.outline),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide:
-                            const BorderSide(color: Colors.black38, width: 1),
-                      ),
-                      filled: true,
-                      fillColor: colorScheme.surface.withOpacity(0.5),
-                    ),
-                    items: _roles.map((role) {
-                      return DropdownMenuItem(
-                        value: role,
-                        child: Text(role.substring(0, 1).toUpperCase() +
-                            role.substring(1)),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedRole = value!;
-                      });
                     },
                   ),
                   const SizedBox(height: 16),
@@ -212,64 +127,56 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
+                        return 'Please enter your password';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
 
-                  // Confirm Password Field
-                  _buildTextField(
-                    controller: _confirmPasswordController,
-                    label: 'Confirm Password',
-                    icon: Iconsax.lock_14,
-                    obscureText: _obscureConfirmPassword,
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off,
-                        color: colorScheme.onSurface.withOpacity(0.6),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please confirm your password';
-                      }
-                      if (value != _passwordController.text) {
-                        return 'Passwords do not match';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Terms and Conditions
+                  // Remember Me & Forgot Password Row
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'By signing up, you agree to our Terms of Service and Privacy Policy',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withOpacity(0.6),
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _rememberMe,
+                            onChanged: (value) {
+                              setState(() {
+                                _rememberMe = value ?? false;
+                              });
+                            },
+                            activeColor: colorScheme.primary,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          Text(
+                            'Remember me',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurface.withOpacity(0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          // Navigate to forgot password
+                          // context.pushNamed(RouteNames.forgotPassword);
+                        },
+                        child: Text(
+                          'Forgot Password?',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 32),
 
-                  // Sign Up Button
+                  // Login Button
                   BlocBuilder<AuthenticationBloc, AuthenticationState>(
                     builder: (context, state) {
                       final isLoading = state is AuthenticationLoading;
@@ -277,7 +184,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       return SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: isLoading ? null : _handleSignUp,
+                          onPressed: isLoading ? null : _handleLogin,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: colorScheme.primary,
                             foregroundColor: colorScheme.onPrimary,
@@ -297,7 +204,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   ),
                                 )
                               : const Text(
-                                  'Create Account',
+                                  'Sign In',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -307,24 +214,24 @@ class _SignUpPageState extends State<SignUpPage> {
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
-                  // Login Link
+                  // Sign Up Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Already have an account? ',
+                        'Don\'t have an account? ',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurface.withOpacity(0.6),
                         ),
                       ),
                       GestureDetector(
                         onTap: () {
-                          context.pushReplacementNamed(RouteNames.login);
+                          context.pushReplacementNamed(RouteNames.signup);
                         },
                         child: Text(
-                          'Login',
+                          'Sign Up',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: colorScheme.primary,
                             fontWeight: FontWeight.w600,
@@ -381,16 +288,47 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  void _handleSignUp() {
+  Widget _buildSocialButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(
+        icon,
+        color: colorScheme.onSurface.withOpacity(0.7),
+        size: 20,
+      ),
+      label: Text(
+        label,
+        style: TextStyle(
+          color: colorScheme.onSurface.withOpacity(0.7),
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        side: BorderSide(
+          color: colorScheme.onSurface.withOpacity(0.2),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  void _handleLogin() {
     if (_formKey.currentState!.validate()) {
       final authBloc = context.read<AuthenticationBloc>();
 
-      authBloc.add(RegisterUserEvent(
-        name: _nameController.text.trim(),
+      authBloc.add(LoginUserEvent(
         email: _emailController.text.trim(),
         password: _passwordController.text,
-        role: _selectedRole,
-        phone: _phoneController.text.trim(),
       ));
     }
   }

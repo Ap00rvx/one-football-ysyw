@@ -85,7 +85,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     ),
                     GestureDetector(
                       onTap: () {
-                        // Add your login navigation logic here
+                        context.pushNamed(RouteNames.login);
                       },
                       child: Text(
                         "Login",

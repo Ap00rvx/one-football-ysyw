@@ -1,20 +1,32 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ysyw/config/router/route_names.dart';
+import 'package:ysyw/screens/auth/login_page.dart';
+import 'package:ysyw/screens/auth/otp_verification_page.dart';
 import 'package:ysyw/screens/auth/sign_up_page.dart';
 import 'package:ysyw/screens/onboarding_page.dart';
+import 'package:ysyw/screens/splash_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: "/",
   routes: [
     GoRoute(
-      name: RouteNames.onboarding,
+      name: RouteNames.splash,
       path: "/",
+      pageBuilder: (context, state) => CupertinoPage(
+        key: state.pageKey,
+        child: const SplashPage(),
+      ),
+    ),
+     GoRoute(
+      name: RouteNames.onboarding,
+      path: "/onboarding",
       pageBuilder: (context, state) => CupertinoPage(
         key: state.pageKey,
         child: const OnboardingPage(),
       ),
     ),
+
     GoRoute(
       name: RouteNames.signup,
       path: "/signup",
@@ -22,6 +34,29 @@ final appRouter = GoRouter(
         key: state.pageKey,
         child: const SignUpPage(),
       ),
+    ),
+    GoRoute(
+      name: RouteNames.login,
+      path: "/login",
+      pageBuilder: (context, state) => CupertinoPage(
+        key: state.pageKey,
+        child: const LoginPage(),
+      ),
+    ),
+    GoRoute(
+      name: RouteNames.verify,
+      path: "/verify",
+      // Assuming the email is passed as a query parameter
+      pageBuilder: (context, state) {
+        // Extract email from the extras
+        final email =
+            (state.extra as Map<String, dynamic>?)?['email'] as String?;
+
+        return CupertinoPage(
+          key: state.pageKey,
+          child: OtpVerificationPage(email: email ?? ''),
+        );
+      },
     ),
   ],
 );
