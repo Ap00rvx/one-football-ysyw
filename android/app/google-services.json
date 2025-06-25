@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1035319385619",
+    "project_id": "ysyw-01",
+    "storage_bucket": "ysyw-01.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1035319385619:android:b5583ea20af93d4b60e9e6",
+        "android_client_info": {
+          "package_name": "com.yoursportyourworld.ysyw"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDeKI8J9pmqeKEmozTdsitEcIQ0af8PbTY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
