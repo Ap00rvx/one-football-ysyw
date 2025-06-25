@@ -1,6 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 class DioClient {
   static final DioClient _instance = DioClient._internal();
   factory DioClient() => _instance;
@@ -8,7 +6,7 @@ class DioClient {
   final Dio _dio = Dio(
     BaseOptions(
       baseUrl:
-          DotEnv().env['API_URL'] ?? "",
+         "https://api.yoursportyourworld.com",
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
     ),

@@ -3,10 +3,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:ysyw/bloc/auth/authentication_bloc.dart';
 import 'package:ysyw/config/router/context_router.dart';
 import 'package:ysyw/config/theme/theme.dart';
 import 'package:ysyw/firebase_options.dart';
 import 'package:ysyw/services/notification_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,11 +46,19 @@ class _RootAppState extends State<RootApp> {
   }
 
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'YSYW',
-      theme: appTheme,
-      debugShowCheckedModeBanner: false,
-      routerConfig: appRouter,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => AuthenticationBloc(),
+        ),
+        
+      ],
+      child: MaterialApp.router(
+        title: 'YSYW',
+        theme: appTheme,
+        debugShowCheckedModeBanner: false,
+        routerConfig: appRouter,
+      ),
     );
   }
 }
