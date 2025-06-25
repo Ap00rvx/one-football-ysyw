@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:ysyw/config/router/route_names.dart';
 import 'package:ysyw/config/theme/colors.dart';
 import 'package:ysyw/widgets/onboarding_carousel.dart';
 
@@ -28,6 +30,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
                   child: Container(
                     decoration: BoxDecoration(
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 10,
+                          offset: const Offset(0, 4), // Shadow position
+                        ),
+                      ],
                       gradient: const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -50,7 +59,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         padding: const EdgeInsets.symmetric(
                             vertical: 20, horizontal: 30),
                       ),
-                      onPressed: () {},
+                      onPressed: () {
+                        context.pushNamed(RouteNames.signup);
+                      },
                       child: const Text(
                         'Lets Get Started',
                         style: TextStyle(
