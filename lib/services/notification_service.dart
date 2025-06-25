@@ -24,7 +24,7 @@ class NotificationService {
 
     if (status.isGranted) {
       print("✅ Notification permission granted.");
-      String? token = await _getFCMToken();
+      String? token = await getFCMToken();
       print("🔑 FCM Token: $token");
     } else if (status.isDenied) {
       print("🚫 Notification permission denied.");
@@ -35,7 +35,7 @@ class NotificationService {
   }
 
   /// **2️⃣ Get FCM Token**
-  Future<String?> _getFCMToken() async {
+  Future<String?> getFCMToken() async {
     return await _firebaseMessaging.getToken();
   }
 
