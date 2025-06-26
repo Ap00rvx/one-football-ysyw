@@ -62,6 +62,11 @@ final class AuthenticationAuthenticated extends AuthenticationState {
   });
 }
 
+final class OtpResentSuccess extends AuthenticationState {
+  final String message;
+
+  OtpResentSuccess({required this.message});
+}
 final class AuthenticationUnauthenticated extends AuthenticationState {}
 
 final class AuthenticationError extends AuthenticationState {

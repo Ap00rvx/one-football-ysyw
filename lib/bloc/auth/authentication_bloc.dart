@@ -20,8 +20,29 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     on<GetUserProfileEvent>(_onGetUserProfile);
     on<LogoutEvent>(_onLogout);
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
+    on<ResendOtpEvent>(_onResendOtp); 
   }
 
+  Future<void> _onResendOtp(
+    ResendOtpEvent event,
+    Emitter<AuthenticationState> emit,
+  ) async {
+    emit(AuthenticationLoading());
+    
+    try {
+      Debug.info('Resending OTP to ${event.email}');
+      
+      final response = await _authService.resendOtp(email: event.email);
+      
+      Debug.success('OTP resent successfully');
+      emit(OtpResentSuccess(
+        message: response.message,
+      ));
+    } catch (e) {
+      Debug.error('Failed to resend OTP: $e');
+      emit(AuthenticationError(message: e.toString()));
+    }
+  }
   Future<void> _onRegisterUser(
     RegisterUserEvent event,
     Emitter<AuthenticationState> emit,

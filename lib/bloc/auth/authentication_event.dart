@@ -44,6 +44,11 @@ class GetUserProfileEvent extends AuthenticationEvent {
 
   GetUserProfileEvent({required this.userId});
 }
+class ResendOtpEvent extends AuthenticationEvent {
+  final String email;
+
+  ResendOtpEvent({required this.email});
+}
 
 class LogoutEvent extends AuthenticationEvent {}
 

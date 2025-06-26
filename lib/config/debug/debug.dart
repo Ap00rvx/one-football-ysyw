@@ -77,6 +77,15 @@ class Debug {
         return _bold;
     }
   }
+
+  static void bloc(String s) 
+  {
+    if (kDebugMode) {
+      final colorCode = _getColorCode(DebugColor.bold);
+      final timestamp = DateTime.now().toString().substring(11, 23);
+      debugPrint('$colorCode[BLOC][$timestamp] $s$_reset');
+    }
+  }
 }
 
 /// Available debug colors
@@ -89,4 +98,5 @@ enum DebugColor {
   cyan,
   white,
   bold,
+  
 }

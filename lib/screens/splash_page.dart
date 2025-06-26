@@ -67,7 +67,7 @@ class _SplashPageState extends State<SplashPage>
 
       // Check if token is valid and not expired
       if (_isTokenValid(token)) {
-        // Token is valid, go to home
+   
         context.go('/home');
       } else {
         // Token is expired or invalid, clear it and go to onboarding

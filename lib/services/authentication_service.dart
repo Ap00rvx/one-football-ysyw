@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:ysyw/config/exceptions/auth.dart';
 import '../global/dio.dart';
 import '../config/debug/debug.dart';
@@ -131,6 +132,48 @@ class AuthenticationService {
     } catch (e) {
       Debug.error('Unexpected profile fetch error: $e');
       throw AuthException('An unexpected error occurred while fetching profile');
+    }
+  }
+  Future<AuthResponse> resendOtp({
+    required String email,
+  })async{
+    try {
+      Debug.api('Attempting to resend OTP for email: $email');
+      
+      final response = await _dioClient.post('/app/user/resend-otp', data: {
+        'email': email,
+      });
+
+      if (response.statusCode == 200) {
+        Debug.success('OTP resent successfully');
+        return AuthResponse.fromJson(response.data);
+      } else {
+        Debug.error('Resend OTP failed with status: ${response.statusCode}');
+        throw AuthException('Failed to resend OTP');
+      }
+    } on DioException catch (e) {
+      Debug.error('Resend OTP API error: ${e.response?.data ?? e.message}');
+      throw AuthException(_handleDioError(e));
+    } catch (e) {
+      Debug.error('Unexpected resend OTP error: $e');
+      throw AuthException('An unexpected error occurred while resending OTP');
+    }
+  }
+  Future<String> getRole(String token)async{
+    try {
+      Debug.custom("Extracting role from the jwt token","JWT:"); 
+      final decoded = JwtDecoder.decode(token);
+      if (decoded.containsKey('role')) {
+        final role = decoded['role'];
+        Debug.custom("Role extracted successfully","Role: $role");
+        return role;
+      } else {
+        Debug.error('Role not found in token');
+        throw AuthException('Role not found in token');
+      }
+    } catch (e) {
+      Debug.error('Error extracting role from token: $e');
+      throw AuthException('An error occurred while extracting role from token');
     }
   }
 

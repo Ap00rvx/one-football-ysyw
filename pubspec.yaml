@@ -48,6 +48,9 @@ dependencies:
   carousel_slider: ^5.1.1
   pinput: ^5.0.1
   jwt_decoder: ^2.0.1
+  get_it: ^8.0.3
+  equatable: ^2.0.7
+  intl: ^0.20.2
   iconsax:
   
 

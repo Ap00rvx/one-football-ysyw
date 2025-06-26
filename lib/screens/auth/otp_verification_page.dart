@@ -120,6 +120,14 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                 backgroundColor: colorScheme.error,
               ),
             );
+          } else if (state is OtpResentSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: colorScheme.primary,
+              ),
+            );
+            _startResendTimer(); // Restart the resend timer
           } else if (state is VerificationSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -128,7 +136,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
               ),
             );
             // Navigate to home screen
-            // context.go('/home');
+            context.go('/home');
           } else if (state is AuthenticationAuthenticated) {
             // User is now authenticated
             ScaffoldMessenger.of(context).showSnackBar(
@@ -139,8 +147,20 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
             );
             final token = state.token;
             Debug.warning('User authenticated with token: $token');
+            final role = state.user.role; 
             LocalStorageService().saveAuthToken(token);
-            // context.go('/home');
+
+            if(role == "student"){
+              context.go('/studentDetails',extra:{
+                "email": widget.email,
+                "name": state.user.name,
+                "userId": state.user.id,
+              });
+            }
+            else{
+              context.go('/home');
+            }
+            
           }
         },
         child: SingleChildScrollView(
@@ -357,16 +377,9 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
     ));
   }
 
-  void _handleResendCode() {
-    // TODO: Implement resend OTP functionality
-    // This would typically call a resend OTP API endpoint
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Verification code sent again!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    _startResendTimer();
+  void _handleResendCode() async {
+    context.read<AuthenticationBloc>().add(
+          ResendOtpEvent(email: widget.email),
+        );
   }
 }
