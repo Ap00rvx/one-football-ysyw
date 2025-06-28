@@ -10,10 +10,12 @@ import '../../bloc/auth/authentication_bloc.dart';
 
 class OtpVerificationPage extends StatefulWidget {
   final String email;
+  final bool isLogin;
 
   const OtpVerificationPage({
     super.key,
     required this.email,
+    this.isLogin = false, //
   });
 
   @override
@@ -147,20 +149,28 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
             );
             final token = state.token;
             Debug.warning('User authenticated with token: $token');
-            final role = state.user.role; 
+            final role = state.user.role;
             LocalStorageService().saveAuthToken(token);
-
-            if(role == "student"){
-              context.go('/studentDetails',extra:{
-                "email": widget.email,
-                "name": state.user.name,
-                "userId": state.user.id,
-              });
-            }
-            else{
+            Debug.info('Token saved successfully');
+            Debug.info(
+                'User authenticated successfully: ${state.user.toJson()}');
+            // If this is a login flow, navigate to home directly
+            Debug.info('isLogin: ${widget.isLogin.runtimeType}');
+            if (widget.isLogin == true) {
               context.go('/home');
+            } else {
+              // Navigate based on user role
+              Debug.info('User role: $role');
+              if (role == "student") {
+                context.go('/studentDetails', extra: {
+                  "email": widget.email,
+                  "name": state.user.name,
+                  "userId": state.user.id,
+                });
+              } else {
+                context.go('/home');
+              }
             }
-            
           }
         },
         child: SingleChildScrollView(

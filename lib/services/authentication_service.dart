@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:ysyw/config/exceptions/auth.dart';
+import 'package:ysyw/services/local_storage_service.dart';
 import '../global/dio.dart';
 import '../config/debug/debug.dart';
 import '../model/auth.dart';
@@ -113,7 +114,14 @@ class AuthenticationService {
   }
 
   /// Get user profile by ID
-  Future<UserProfileResponse> getUserProfile(String userId) async {
+  Future<UserProfileResponse> getUserProfile() async {
+    final token = await LocalStorageService().getAuthToken();
+    final decoded = JwtDecoder.decode(token ?? '');
+    final userId = decoded['id'] ?? '';
+    if (userId.isEmpty) {
+      Debug.error('User ID is empty, cannot fetch profile');
+      throw AuthException('User ID is required to fetch profile');
+    }
     try {
       Debug.api('Fetching user profile for ID: $userId');
       
@@ -179,6 +187,7 @@ class AuthenticationService {
 
   void logout() {
     Debug.info('User logged out - clearing authorization');
+    LocalStorageService().deleteAuthToken();
     _dioClient.setAuthorization('');
   }
 

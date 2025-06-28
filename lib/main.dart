@@ -4,12 +4,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ysyw/bloc/auth/authentication_bloc.dart';
-import 'package:ysyw/bloc/bloc/student_bloc.dart';
+import 'package:ysyw/bloc/student/student_bloc.dart';
 import 'package:ysyw/config/router/context_router.dart';
 import 'package:ysyw/config/theme/theme.dart';
 import 'package:ysyw/firebase_options.dart';
 import 'package:ysyw/locator.dart';
-import 'package:ysyw/services/local_storage_service.dart';
+
 import 'package:ysyw/services/notification_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,7 +23,7 @@ void main() async {
   NotificationService().init();
   await dotenv.load(fileName: ".env");
   setupLocator();
-  LocalStorageService().deleteAuthToken();
+  // LocalStorageService().deleteAuthToken();
   runApp(const RootApp());
 }
 
@@ -54,7 +54,7 @@ class _RootAppState extends State<RootApp> {
         BlocProvider(
           create: (context) => AuthenticationBloc(),
         ),
-         BlocProvider(
+        BlocProvider(
           create: (context) => StudentBloc(),
         ),
       ],

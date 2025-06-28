@@ -21,5 +21,4 @@ class LocalStorageService {
   Future<void> deleteAuthToken() async {
     await _storage.delete(key: 'auth_token');
   }
-  
 }

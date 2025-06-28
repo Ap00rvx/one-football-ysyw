@@ -130,11 +130,20 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
           token: response.token!,
         ));
         
-        // Update to authenticated state
-        emit(AuthenticationAuthenticated(
+        if (response.user!.isVerified) {
+          Debug.info('User is verified, updating authentication state');
+          emit(AuthenticationAuthenticated(
           user: response.user!,
           token: response.token!,
         ));
+        } else {
+          Debug.warning('User is not verified, prompting for verification');
+          emit(LoginSuccess(
+            message: response.message,
+            user: response.user!,
+            token: response.token!,
+          ));
+        }  
       } else {
         Debug.warning('Login successful but missing user data or token');
         emit(AuthenticationError(message: 'Login incomplete'));
@@ -154,7 +163,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     try {
       Debug.info('Fetching user profile');
       
-      final response = await _authService.getUserProfile(event.userId);
+      final response = await _authService.getUserProfile();
       
       Debug.success('Profile loaded successfully');
       emit(ProfileLoaded(user: response.user));

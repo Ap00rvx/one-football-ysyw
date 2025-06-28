@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:ysyw/config/debug/debug.dart';
+import 'package:ysyw/services/local_storage_service.dart';
 import '../../bloc/auth/authentication_bloc.dart';
 import '../../config/router/route_names.dart';
 
@@ -60,7 +62,30 @@ class _LoginPageState extends State<LoginPage> {
                 backgroundColor: Colors.green,
               ),
             );
-          } else if (state is AuthenticationAuthenticated) {}
+            Debug.info(
+              'Login successful for user: ${state.user.toJson()}',
+            );
+            if (state.user.isVerified) {
+              LocalStorageService().saveAuthToken(state.token);
+              context.goNamed(RouteNames.home);
+            } else {
+              AuthenticationBloc().add(
+                ResendOtpEvent(
+                  email: state.user.email,
+                ),
+              );
+              context.go('/verify', extra: {
+                'email': _emailController.text.trim(),
+                'isLogin': true,
+              }); //
+            }
+          } else if (state is AuthenticationAuthenticated) {
+            if (_rememberMe) {
+              LocalStorageService().saveAuthToken(state.token);
+            }
+
+            context.goNamed(RouteNames.home);
+          }
         },
         child: SingleChildScrollView(
           child: Padding(

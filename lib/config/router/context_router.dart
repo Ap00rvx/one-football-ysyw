@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ysyw/config/debug/debug.dart';
 import 'package:ysyw/config/router/route_names.dart';
 import 'package:ysyw/screens/auth/login_page.dart';
 import 'package:ysyw/screens/auth/otp_verification_page.dart';
@@ -20,7 +21,7 @@ final appRouter = GoRouter(
         child: const SplashPage(),
       ),
     ),
-     GoRoute(
+    GoRoute(
       name: RouteNames.onboarding,
       path: "/onboarding",
       pageBuilder: (context, state) => CupertinoPage(
@@ -28,7 +29,6 @@ final appRouter = GoRouter(
         child: const OnboardingPage(),
       ),
     ),
-
     GoRoute(
       name: RouteNames.signup,
       path: "/signup",
@@ -45,7 +45,7 @@ final appRouter = GoRouter(
         child: const LoginPage(),
       ),
     ),
-      GoRoute(
+    GoRoute(
       name: RouteNames.home,
       path: "/home",
       pageBuilder: (context, state) => CupertinoPage(
@@ -61,10 +61,17 @@ final appRouter = GoRouter(
         // Extract email from the extras
         final email =
             (state.extra as Map<String, dynamic>?)?['email'] as String?;
+        // Extract isLogin flag from the extras
+        final isLogin =
+            (state.extra as Map<String, dynamic>?)?['isLogin'] as bool? ??
+                false;
+        Debug.custom(
+            'Navigating to OtpVerificationPage with email: $email, isLogin: $isLogin',
+            "");
 
         return CupertinoPage(
           key: state.pageKey,
-          child: OtpVerificationPage(email: email ?? ''),
+          child: OtpVerificationPage(email: email ?? '', isLogin: isLogin),
         );
       },
     ),
@@ -76,8 +83,7 @@ final appRouter = GoRouter(
         // Extract email from the extras
         final email =
             (state.extra as Map<String, dynamic>?)?['email'] as String?;
-        final name =
-            (state.extra as Map<String, dynamic>?)?['name'] as String?;
+        final name = (state.extra as Map<String, dynamic>?)?['name'] as String?;
         final userId =
             (state.extra as Map<String, dynamic>?)?['userId'] as String?;
 

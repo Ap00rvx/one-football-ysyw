@@ -40,9 +40,9 @@ class LoginUserEvent extends AuthenticationEvent {
 }
 
 class GetUserProfileEvent extends AuthenticationEvent {
-  final String userId;
+ 
 
-  GetUserProfileEvent({required this.userId});
+  GetUserProfileEvent();
 }
 class ResendOtpEvent extends AuthenticationEvent {
   final String email;

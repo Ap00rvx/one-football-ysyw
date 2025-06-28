@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
-import '../../bloc/bloc/student_bloc.dart';
+import 'package:ysyw/bloc/student/student_bloc.dart';
 import '../../model/student.dart';
 
 class StudentDetailsPage extends StatefulWidget {
