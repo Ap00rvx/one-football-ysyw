@@ -4,7 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:ysyw/bloc/auth/authentication_bloc.dart';
+import 'package:ysyw/bloc/competetion/competetion_bloc.dart';
 import 'package:ysyw/bloc/student/student_bloc.dart';
+import 'package:ysyw/config/debug/debug.dart';
 import 'package:ysyw/config/router/context_router.dart';
 import 'package:ysyw/config/theme/theme.dart';
 import 'package:ysyw/firebase_options.dart';
@@ -21,7 +23,14 @@ void main() async {
                 firebaseMessagingBackgroundHandler)
           });
   NotificationService().init();
-  await dotenv.load(fileName: ".env");
+  await dotenv.load(fileName: ".env").then((_) {
+    Debug.info("Environment variables loaded successfully");
+    Debug.info("API URL: ${dotenv.env['API_URL']}");
+    Debug.info("Football API URL: ${dotenv.env['FOOTBALL_API_URL']}");
+    Debug.info("Football API Key: ${dotenv.env['FOOTBALL_API_KEY']}");
+  }).catchError((error) {
+    Debug.info("Error loading environment variables: $error");
+  });
   setupLocator();
   // LocalStorageService().deleteAuthToken();
   runApp(const RootApp());
@@ -51,11 +60,15 @@ class _RootAppState extends State<RootApp> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+
         BlocProvider(
           create: (context) => AuthenticationBloc(),
         ),
         BlocProvider(
           create: (context) => StudentBloc(),
+        ),
+         BlocProvider(
+          create: (context) => CompetetionBloc(),
         ),
       ],
       child: MaterialApp.router(
