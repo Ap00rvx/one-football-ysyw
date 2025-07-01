@@ -167,7 +167,16 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                   "name": state.user.name,
                   "userId": state.user.id,
                 });
-              } else {
+              } 
+              else if (role == "coach") {
+                context.go('/coachDetails', extra: {
+                  "email": widget.email,
+                  "name": state.user.name,
+                  "userId": state.user.id,
+                });
+              }
+              
+              else {
                 context.go('/home');
               }
             }

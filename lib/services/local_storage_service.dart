@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class LocalStorageService {
   final _storage = const FlutterSecureStorage();
@@ -8,6 +9,16 @@ class LocalStorageService {
 
   factory LocalStorageService() {
     return _instance;
+  }
+
+  Future<String> getUserId() async {
+    final token = await _storage.read(key: 'auth_token');
+    if (token == null) {
+      throw Exception("No authentication token found");
+    }
+    final decoded =  JwtDecoder.decode(token);
+    final userId = decoded['userId'] ?? decoded['id'];
+    return userId;
   }
 
   Future<void> saveAuthToken(String token) async {

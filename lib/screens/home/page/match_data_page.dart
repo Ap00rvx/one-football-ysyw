@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:ysyw/bloc/auth/authentication_bloc.dart';
+import 'package:ysyw/config/router/route_names.dart';
 import '../../../bloc/competetion/competetion_bloc.dart';
 import '../../../model/competetion_response_model.dart';
 
@@ -41,8 +44,6 @@ class _MatchDataPageState extends State<MatchDataPage>
       appBar: AppBar(
         title: const Text('Your Sport Your World',
             style: TextStyle(
-  
-
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.2,
@@ -78,6 +79,15 @@ class _MatchDataPageState extends State<MatchDataPage>
           IconButton(
             onPressed: () => _showFilterBottomSheet(context),
             icon: const Icon(Iconsax.filter),
+          ),
+          IconButton(
+            onPressed: () {
+              context.read<AuthenticationBloc>().add(LogoutEvent());
+              if (context.mounted) {
+                context.go(RouteNames.onboarding);
+              }
+            },
+            icon: const Icon(Iconsax.logout4),
           ),
           const SizedBox(width: 8),
         ],

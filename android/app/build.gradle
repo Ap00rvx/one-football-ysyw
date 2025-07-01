@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.yoursportyourworld.ysyw"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
     ndkVersion =  "25.1.8937393"
 
     compileOptions {

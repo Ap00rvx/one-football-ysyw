@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:ysyw/bloc/profile/profile_bloc.dart';
 import 'package:ysyw/config/router/route_names.dart';
 import 'package:ysyw/screens/home/page/match_data_page.dart';
+import 'package:ysyw/screens/home/page/profile_page.dart';
 import 'package:ysyw/services/fcm_service.dart';
 
 import '../../bloc/auth/authentication_bloc.dart';
@@ -22,7 +24,7 @@ class _HomePageState extends State<HomePage> {
     const MatchDataPage(),
     Placeholder(),
     Placeholder(),
-    Placeholder(),
+    ProfilePage(),
   ];
   int _index = 0;
   @override
@@ -31,6 +33,7 @@ class _HomePageState extends State<HomePage> {
     // Fetch the token from local storage or any other source
 
     context.read<AuthenticationBloc>().add(GetUserProfileEvent());
+    context.read<ProfileBloc>().add(GetProfileEvent());
   }
 
   @override
@@ -72,7 +75,7 @@ class _HomePageState extends State<HomePage> {
               userId = state.user.id;
               // Remove or update the following line if 'token' does not exist on User
               // token = state.user.token;
-              FcmService().saveToken(userId);
+              // FcmService().saveToken(userId);
               return pages[_index];
             } else if (state is AuthenticationError) {
               return Center(child: Text('Error: ${state.message}'));

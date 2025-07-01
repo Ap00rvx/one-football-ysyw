@@ -6,4 +6,5 @@ class RouteNames {
   static const String verify = 'verify';
   static const String home = 'home';
   static const String studentDetails = 'studentDetails';
+  static const String coachDetails = 'coachDetails'; 
 }
