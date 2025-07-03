@@ -4,10 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:ysyw/bloc/profile/profile_bloc.dart';
+import 'package:ysyw/widgets/create_schdeule_dialog.dart';
 
 import '../../../bloc/schedule/schedule_bloc.dart';
 import '../../../model/schedule.dart';
 import '../../../services/local_storage_service.dart';
+import '../../../widgets/edit_schdule_dialog.dart';
+import '../../../widgets/create_complete_schedule_dialog.dart';
 
 class SchedulePage extends StatefulWidget {
   const SchedulePage({super.key});
@@ -115,9 +118,10 @@ class _SchedulePageState extends State<SchedulePage>
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
                 SliverAppBar(
-                  expandedHeight: 120,
+                  expandedHeight: 150,
                   floating: false,
                   pinned: true,
+                  centerTitle: false,
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   elevation: 0,
                   actions: [
@@ -126,12 +130,28 @@ class _SchedulePageState extends State<SchedulePage>
                         icon: const Icon(Iconsax.add),
                         onPressed: () => _showCreateScheduleDialog(context),
                       ),
-                    IconButton(
-                      icon: const Icon(Iconsax.refresh),
-                      onPressed: () {
-                        context
-                            .read<ScheduleBloc>()
-                            .add(RefreshSchedulesEvent());
+                    BlocBuilder<ScheduleBloc, ScheduleState>(
+                      builder: (context, state) {
+                        if (state.isLoading) {
+                          return const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 1,
+                              ),
+                            ),
+                          );
+                        }
+                        return IconButton(
+                          icon: const Icon(Iconsax.refresh),
+                          onPressed: () {
+                            context
+                                .read<ScheduleBloc>()
+                                .add(RefreshSchedulesEvent());
+                          },
+                        );
                       },
                     ),
                     PopupMenuButton<String>(
@@ -170,12 +190,23 @@ class _SchedulePageState extends State<SchedulePage>
                     ),
                   ],
                   flexibleSpace: FlexibleSpaceBar(
-                    title: Text(
-                      _isCoach ? 'Coach Schedules' : 'My Schedules',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                    centerTitle: true,
+                    title: Row(
+                      children: [
+                        Icon(
+                          _isCoach ? Iconsax.teacher : Iconsax.user,
+                          color: Colors.white.withOpacity(0.8),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _isCoach ? 'Coach Dashboard' : 'Student View',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(1),
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
                     ),
                     background: Container(
                       decoration: BoxDecoration(
@@ -189,37 +220,6 @@ class _SchedulePageState extends State<SchedulePage>
                                 .primary
                                 .withOpacity(0.8),
                           ],
-                        ),
-                      ),
-                      child: SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 40),
-                              Row(
-                                children: [
-                                  Icon(
-                                    _isCoach ? Iconsax.teacher : Iconsax.user,
-                                    color: Colors.white.withOpacity(0.8),
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    _isCoach
-                                        ? 'Coach Dashboard'
-                                        : 'Student View',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
                         ),
                       ),
                     ),
@@ -303,6 +303,7 @@ class _SchedulePageState extends State<SchedulePage>
         padding: const EdgeInsets.all(16),
         itemCount: schedules.length,
         itemBuilder: (context, index) {
+          schedules.sort((b, a) => a.createdAt!.compareTo(b.createdAt!));
           final schedule = schedules[index];
           return ScheduleCard(
             schedule: schedule,
@@ -429,7 +430,7 @@ class _SchedulePageState extends State<SchedulePage>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
       builder: (context) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -835,10 +836,9 @@ class ScheduleCard extends StatelessWidget {
                                     .read<ProfileBloc>()
                                     .state
                                     .studentProfile
-                                    ?.id ??
+                                    ?.userId ??
                                 '',
                           );
-
                           if (isAttending) {
                             return _ActionButton(
                               icon: Iconsax.logout,
@@ -1114,6 +1114,7 @@ class ScheduleDetailsSheet extends StatelessWidget {
                       width: double.infinity,
                       child: BlocBuilder<ScheduleBloc, ScheduleState>(
                         builder: (context, state) {
+                          print('Schedule: ${schedule.attendees}');
                           // Check if user is attending this schedule
                           final isAttending = schedule.isUserAttending(
                             context
@@ -1257,649 +1258,6 @@ class _DetailRow extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-// Create Schedule Dialog
-class CreateScheduleDialog extends StatefulWidget {
-  final Function(
-    String title,
-    String? description,
-    DateTime date,
-    DateTime? endDate,
-    String location,
-    ScheduleType type,
-    int? maxAttendees,
-    String? notes,
-  ) onCreateSchedule;
-
-  const CreateScheduleDialog({
-    super.key,
-    required this.onCreateSchedule,
-  });
-
-  @override
-  State<CreateScheduleDialog> createState() => _CreateScheduleDialogState();
-}
-
-class _CreateScheduleDialogState extends State<CreateScheduleDialog> {
-  final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _locationController = TextEditingController();
-  final _maxAttendeesController = TextEditingController();
-  final _notesController = TextEditingController();
-
-  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
-  DateTime? _selectedEndDate;
-  ScheduleType _selectedType = ScheduleType.practice;
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      child: Container(
-        constraints: const BoxConstraints(maxHeight: 600),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                children: [
-                  const Text(
-                    'Create Schedule',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-            ),
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        controller: _titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'Title',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a title';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _descriptionController,
-                        decoration: const InputDecoration(
-                          labelText: 'Description (Optional)',
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<ScheduleType>(
-                        value: _selectedType,
-                        decoration: const InputDecoration(
-                          labelText: 'Type',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: ScheduleType.values.map((type) {
-                          return DropdownMenuItem(
-                            value: type,
-                            child: Text(type.displayName),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedType = value!;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ListTile(
-                              title: const Text('Date'),
-                              subtitle: Text(
-                                DateFormat('MMM dd, yyyy')
-                                    .format(_selectedDate),
-                              ),
-                              trailing: const Icon(Iconsax.calendar),
-                              onTap: () async {
-                                final date = await showDatePicker(
-                                  context: context,
-                                  initialDate: _selectedDate,
-                                  firstDate: DateTime.now(),
-                                  lastDate: DateTime.now()
-                                      .add(const Duration(days: 365)),
-                                );
-                                if (date != null) {
-                                  setState(() {
-                                    _selectedDate = DateTime(
-                                      date.year,
-                                      date.month,
-                                      date.day,
-                                      _selectedDate.hour,
-                                      _selectedDate.minute,
-                                    );
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                          Expanded(
-                            child: ListTile(
-                              title: const Text('Time'),
-                              subtitle: Text(
-                                DateFormat('HH:mm').format(_selectedDate),
-                              ),
-                              trailing: const Icon(Iconsax.clock),
-                              onTap: () async {
-                                final time = await showTimePicker(
-                                  context: context,
-                                  initialTime:
-                                      TimeOfDay.fromDateTime(_selectedDate),
-                                );
-                                if (time != null) {
-                                  setState(() {
-                                    _selectedDate = DateTime(
-                                      _selectedDate.year,
-                                      _selectedDate.month,
-                                      _selectedDate.day,
-                                      time.hour,
-                                      time.minute,
-                                    );
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _locationController,
-                        decoration: const InputDecoration(
-                          labelText: 'Location',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a location';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _maxAttendeesController,
-                        decoration: const InputDecoration(
-                          labelText: 'Max Attendees (Optional)',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _notesController,
-                        decoration: const InputDecoration(
-                          labelText: 'Notes (Optional)',
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 2,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          widget.onCreateSchedule(
-                            _titleController.text,
-                            _descriptionController.text.isEmpty
-                                ? null
-                                : _descriptionController.text,
-                            _selectedDate,
-                            _selectedEndDate,
-                            _locationController.text,
-                            _selectedType,
-                            _maxAttendeesController.text.isEmpty
-                                ? null
-                                : int.tryParse(_maxAttendeesController.text),
-                            _notesController.text.isEmpty
-                                ? null
-                                : _notesController.text,
-                          );
-                          Navigator.pop(context);
-                        }
-                      },
-                      child: const Text('Create'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Edit Schedule Dialog (Similar to Create but with pre-filled values)
-class EditScheduleDialog extends StatefulWidget {
-  final Schedule schedule;
-  final Function(
-    String title,
-    String? description,
-    DateTime date,
-    DateTime? endDate,
-    String location,
-    ScheduleType type,
-    int? maxAttendees,
-    String? notes,
-  ) onUpdateSchedule;
-
-  const EditScheduleDialog({
-    super.key,
-    required this.schedule,
-    required this.onUpdateSchedule,
-  });
-
-  @override
-  State<EditScheduleDialog> createState() => _EditScheduleDialogState();
-}
-
-class _EditScheduleDialogState extends State<EditScheduleDialog> {
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _titleController;
-  late TextEditingController _descriptionController;
-  late TextEditingController _locationController;
-  late TextEditingController _maxAttendeesController;
-  late TextEditingController _notesController;
-
-  late DateTime _selectedDate;
-  late DateTime? _selectedEndDate;
-  late ScheduleType _selectedType;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController(text: widget.schedule.title);
-    _descriptionController =
-        TextEditingController(text: widget.schedule.description ?? '');
-    _locationController = TextEditingController(text: widget.schedule.location);
-    _maxAttendeesController = TextEditingController(
-      text: widget.schedule.maxAttendees?.toString() ?? '',
-    );
-    _notesController = TextEditingController(text: widget.schedule.notes ?? '');
-    _selectedDate = widget.schedule.date;
-    _selectedEndDate = widget.schedule.endDate;
-    _selectedType = widget.schedule.type;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      child: Container(
-        constraints: const BoxConstraints(maxHeight: 600),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                children: [
-                  const Text(
-                    'Edit Schedule',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-            ),
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        controller: _titleController,
-                        decoration: const InputDecoration(
-                          labelText: 'Title',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a title';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _descriptionController,
-                        decoration: const InputDecoration(
-                          labelText: 'Description (Optional)',
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<ScheduleType>(
-                        value: _selectedType,
-                        decoration: const InputDecoration(
-                          labelText: 'Type',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: ScheduleType.values.map((type) {
-                          return DropdownMenuItem(
-                            value: type,
-                            child: Text(type.displayName),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedType = value!;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ListTile(
-                              title: const Text('Date'),
-                              subtitle: Text(
-                                DateFormat('MMM dd, yyyy')
-                                    .format(_selectedDate),
-                              ),
-                              trailing: const Icon(Iconsax.calendar),
-                              onTap: () async {
-                                final date = await showDatePicker(
-                                  context: context,
-                                  initialDate: _selectedDate,
-                                  firstDate: DateTime.now(),
-                                  lastDate: DateTime.now()
-                                      .add(const Duration(days: 365)),
-                                );
-                                if (date != null) {
-                                  setState(() {
-                                    _selectedDate = DateTime(
-                                      date.year,
-                                      date.month,
-                                      date.day,
-                                      _selectedDate.hour,
-                                      _selectedDate.minute,
-                                    );
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                          Expanded(
-                            child: ListTile(
-                              title: const Text('Time'),
-                              subtitle: Text(
-                                DateFormat('HH:mm').format(_selectedDate),
-                              ),
-                              trailing: const Icon(Iconsax.clock),
-                              onTap: () async {
-                                final time = await showTimePicker(
-                                  context: context,
-                                  initialTime:
-                                      TimeOfDay.fromDateTime(_selectedDate),
-                                );
-                                if (time != null) {
-                                  setState(() {
-                                    _selectedDate = DateTime(
-                                      _selectedDate.year,
-                                      _selectedDate.month,
-                                      _selectedDate.day,
-                                      time.hour,
-                                      time.minute,
-                                    );
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _locationController,
-                        decoration: const InputDecoration(
-                          labelText: 'Location',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a location';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _maxAttendeesController,
-                        decoration: const InputDecoration(
-                          labelText: 'Max Attendees (Optional)',
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _notesController,
-                        decoration: const InputDecoration(
-                          labelText: 'Notes (Optional)',
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 2,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          widget.onUpdateSchedule(
-                            _titleController.text,
-                            _descriptionController.text.isEmpty
-                                ? null
-                                : _descriptionController.text,
-                            _selectedDate,
-                            _selectedEndDate,
-                            _locationController.text,
-                            _selectedType,
-                            _maxAttendeesController.text.isEmpty
-                                ? null
-                                : int.tryParse(_maxAttendeesController.text),
-                            _notesController.text.isEmpty
-                                ? null
-                                : _notesController.text,
-                          );
-                          Navigator.pop(context);
-                        }
-                      },
-                      child: const Text('Update'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Complete Schedule Dialog
-class CompleteScheduleDialog extends StatefulWidget {
-  final Schedule schedule;
-  final Function(String? notes) onComplete;
-
-  const CompleteScheduleDialog({
-    super.key,
-    required this.schedule,
-    required this.onComplete,
-  });
-
-  @override
-  State<CompleteScheduleDialog> createState() => _CompleteScheduleDialogState();
-}
-
-class _CompleteScheduleDialogState extends State<CompleteScheduleDialog> {
-  final _notesController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Complete Schedule'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Mark "${widget.schedule.title}" as completed?'),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _notesController,
-            decoration: const InputDecoration(
-              labelText: 'Completion Notes (Optional)',
-              border: OutlineInputBorder(),
-            ),
-            maxLines: 3,
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            widget.onComplete(
-              _notesController.text.isEmpty ? null : _notesController.text,
-            );
-            Navigator.pop(context);
-          },
-          child: const Text('Complete'),
-        ),
-      ],
-    );
-  }
-}
-
-// Cancel Schedule Dialog
-class CancelScheduleDialog extends StatefulWidget {
-  final Schedule schedule;
-  final Function(String? reason) onCancel;
-
-  const CancelScheduleDialog({
-    super.key,
-    required this.schedule,
-    required this.onCancel,
-  });
-
-  @override
-  State<CancelScheduleDialog> createState() => _CancelScheduleDialogState();
-}
-
-class _CancelScheduleDialogState extends State<CancelScheduleDialog> {
-  final _reasonController = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Cancel Schedule'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Cancel "${widget.schedule.title}"?'),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _reasonController,
-            decoration: const InputDecoration(
-              labelText: 'Cancellation Reason (Optional)',
-              border: OutlineInputBorder(),
-            ),
-            maxLines: 3,
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Keep'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            widget.onCancel(
-              _reasonController.text.isEmpty ? null : _reasonController.text,
-            );
-            Navigator.pop(context);
-          },
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-          child: const Text('Cancel Schedule'),
-        ),
-      ],
     );
   }
 }

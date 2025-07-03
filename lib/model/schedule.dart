@@ -187,6 +187,7 @@ class Schedule extends Equatable {
 
   /// Check if a user is attending this schedule
   bool isUserAttending(String userId) {
+    
     return attendees.contains(userId);
   }
 
