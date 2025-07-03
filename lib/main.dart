@@ -13,10 +13,9 @@ import 'package:ysyw/config/router/context_router.dart';
 import 'package:ysyw/config/theme/theme.dart';
 import 'package:ysyw/firebase_options.dart';
 import 'package:ysyw/locator.dart';
-import 'package:ysyw/services/local_storage_service.dart';
-
 import 'package:ysyw/services/notification_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'bloc/schedule/schedule_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -78,6 +77,9 @@ class _RootAppState extends State<RootApp> {
         ),
          BlocProvider(
           create: (context) => ProfileBloc(),
+        ),
+         BlocProvider(
+          create: (context) => ScheduleBloc(),
         ),
       ],
       child: MaterialApp.router(

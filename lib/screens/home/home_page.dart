@@ -6,6 +6,7 @@ import 'package:ysyw/bloc/profile/profile_bloc.dart';
 import 'package:ysyw/config/router/route_names.dart';
 import 'package:ysyw/screens/home/page/match_data_page.dart';
 import 'package:ysyw/screens/home/page/profile_page.dart';
+import 'package:ysyw/screens/home/page/schedule_page.dart';
 import 'package:ysyw/services/fcm_service.dart';
 
 import '../../bloc/auth/authentication_bloc.dart';
@@ -20,10 +21,10 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String token = "";
   String userId = "";
-  List pages = <Widget>[
-    const MatchDataPage(),
+  List pages =const <Widget>[
+    MatchDataPage(),
     Placeholder(),
-    Placeholder(),
+    SchedulePage(),
     ProfilePage(),
   ];
   int _index = 0;
@@ -98,7 +99,7 @@ class _HomePageState extends State<HomePage> {
               label: 'News',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.schedule_rounded),
+              icon: Icon(Iconsax.calendar),
               label: 'Schedule',
             ),
             BottomNavigationBarItem(

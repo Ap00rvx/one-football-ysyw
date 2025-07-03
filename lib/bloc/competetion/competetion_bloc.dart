@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:ysyw/locator.dart';
 import '../../services/match_data_service.dart';
 import '../../model/competetion_response_model.dart';
 import '../../config/debug/debug.dart';
@@ -8,7 +9,7 @@ part 'competetion_events.dart';
 part 'competetion_state.dart';
 
 class CompetetionBloc extends Bloc<CompetetionEvent, CompetetionState> {
-  final MatchDataService _matchDataService;
+  MatchDataService _matchDataService = locator.get<MatchDataService>();
 
   CompetetionBloc({MatchDataService? matchDataService})
       : _matchDataService = matchDataService ?? MatchDataService(),

@@ -23,6 +23,7 @@ class _ProfilePageState extends State<ProfilePage>
   final CommonService _commonService = CommonService();
   final ImagePicker _imagePicker = ImagePicker();
   bool _isUploadingImage = false;
+  bool _isDeletingImage = false;
 
   @override
   void initState() {
@@ -77,7 +78,7 @@ class _ProfilePageState extends State<ProfilePage>
             onImageUpload: _handleImageUpload,
             isUploadingImage: _isUploadingImage,
             onDeleteImage: () {
-              if (_isUploadingImage) return;
+              if (_isDeletingImage) return;
               if (state.userProfilePicture == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('No profile picture to delete')),
@@ -147,6 +148,7 @@ class _ProfileView extends StatelessWidget {
   final TabController tabController;
   final Function(BuildContext) onImageUpload;
   final bool isUploadingImage;
+  final bool isDeletingImage = false;
   final Function() onDeleteImage;
 
   const _ProfileView({
@@ -166,7 +168,7 @@ class _ProfileView extends StatelessWidget {
     return CustomScrollView(
       slivers: [
         SliverAppBar(
-          expandedHeight: 280,
+          expandedHeight: 480,
           floating: false,
           pinned: true,
           backgroundColor: colorScheme.primary,
@@ -190,7 +192,8 @@ class _ProfileView extends StatelessWidget {
             centerTitle: false,
             background: Container(
                 decoration: BoxDecoration(
-                  image: state.userProfilePicture != null || state.userProfilePicture!.isNotEmpty
+                  image: state.userProfilePicture != null ||
+                          state.userProfilePicture!.isNotEmpty
                       ? DecorationImage(
                           image: NetworkImage(
                             state.userProfilePicture ?? '',
@@ -212,7 +215,8 @@ class _ProfileView extends StatelessWidget {
                 ),
                 child: Stack(
                   children: [
-                    if (state.userProfilePicture == null || state.userProfilePicture!.isEmpty)
+                    if (state.userProfilePicture == null ||
+                        state.userProfilePicture!.isEmpty)
                       Center(
                         child: Text(
                           state.userName.isNotEmpty
@@ -225,6 +229,25 @@ class _ProfileView extends StatelessWidget {
                           ),
                         ),
                       ),
+                    Visibility(
+                        visible: state.userProfilePicture != null &&
+                            state.userProfilePicture!.isNotEmpty,
+                        child: Container(
+                          height: 600,
+                          width: double.infinity,
+                          alignment: Alignment.center,
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.transparent,
+                                  Colors.transparent,
+                                  Colors.black87
+                                ]),
+                          ),
+                        )),
                     Positioned(
                       bottom: 16,
                       left: 16,
@@ -262,7 +285,8 @@ class _ProfileView extends StatelessWidget {
                           onPressed: () => onImageUpload(context)),
                     ),
                     Visibility(
-                      visible: state.userProfilePicture != null && state.userProfilePicture!.isNotEmpty,
+                      visible: state.userProfilePicture != null &&
+                          state.userProfilePicture!.isNotEmpty,
                       child: Positioned(
                         bottom: 16,
                         right: 16,
@@ -273,19 +297,19 @@ class _ProfileView extends StatelessWidget {
                             icon: Row(
                               children: [
                                 CircleAvatar(
-                                  backgroundColor: Colors.transparent,
-                                  child: Icon(
+                                  backgroundColor: Colors.red.withOpacity(1),
+                                  child: const Icon(
                                     Iconsax.trash,
                                     size: 24,
-                                    color: Colors.red.withOpacity(0.8),
+                                    color: Colors.white,
                                   ),
                                 ),
-                                if (isUploadingImage)
+                                if (isDeletingImage)
                                   const SizedBox(
                                     width: 10,
                                   ),
                                 Text(
-                                  isUploadingImage ? 'Deleting...' : '',
+                                  isDeletingImage ? 'Deleting...' : '',
                                   style: TextStyle(
                                     color: Colors.white.withOpacity(0.8),
                                     fontSize: 13,

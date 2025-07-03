@@ -10,6 +10,8 @@ class MatchDataService {
   final headers = <String, String>{};
   final _dioClient = Dio(); 
 
+  CompetetionsResponse? _competitionsResponse;
+
   MatchDataService() {
     if (apiUrl == null) {
       throw Exception('API URL not found in environment variables');
@@ -25,6 +27,10 @@ class MatchDataService {
     Debug.info('MatchDataService initialized with API URL: $apiUrl');
   }
   Future<Either<String, CompetetionsResponse>> getCompetitions() async {
+    if(_competitionsResponse != null) {
+      Debug.info('Returning cached competitions response');
+      return Right(_competitionsResponse!);
+    }
     try {
       Debug.api('Fetching competitions from $apiUrl/competitions');
       Debug.info('Headers: $headers');
@@ -32,7 +38,8 @@ class MatchDataService {
       Debug.info('Response data: ${response.data}');
       if (response.statusCode == 200) {
         Debug.success('Competitions fetched successfully');
-        return Right(CompetetionsResponse.fromJson(response.data));
+        _competitionsResponse = CompetetionsResponse.fromJson(response.data);
+        return Right(_competitionsResponse!);
       } else {
         Debug.error('Failed to fetch competitions: ${response.statusCode}');
         return Left('Failed to fetch competitions: ${response.statusCode}');
@@ -53,4 +60,5 @@ class MatchDataService {
       return Left('Error fetching competitions: $e');
     }
   }
+  CompetetionsResponse? get competitionsResponse => _competitionsResponse;
 }

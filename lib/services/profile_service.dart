@@ -95,6 +95,10 @@ class ProfileService {
       if (highLights != null) {
         requestBody['highLights'] = highLights;
       }
+      
+      if (profilePicture != null && profilePicture.isNotEmpty) {
+        requestBody['profilePicture'] = profilePicture.trim();
+      }
 
       Debug.api('ProfileService: Request body - $requestBody');
       Debug.api(

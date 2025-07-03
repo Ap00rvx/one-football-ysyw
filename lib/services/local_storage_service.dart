@@ -10,7 +10,18 @@ class LocalStorageService {
   factory LocalStorageService() {
     return _instance;
   }
-
+  Future<String> getUserRole()async{
+    final token = await _storage.read(key: 'auth_token');
+    if (token == null) {
+      throw Exception("No authentication token found");
+    }
+    final decoded = JwtDecoder.decode(token);
+    final role = decoded['role'] ?? decoded['userRole'];
+    if (role == null) {
+      throw Exception("Role not found in token");
+    }
+    return role;
+  }
   Future<String> getUserId() async {
     final token = await _storage.read(key: 'auth_token');
     if (token == null) {
